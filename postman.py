@@ -29,6 +29,9 @@ def postman(mboxes,
 
     logger.debug(args)
 
+    if not subject:
+        subject = 'No subject'
+
     if not isinstance(str if mboxes is None else mboxes, list):
         raise ValueError('mailboxes are needed!')
 
@@ -71,6 +74,11 @@ def postman(mboxes,
         embed = []
     elif not isinstance(embed, list):
         raise ValueError('embedments should be in list')
+
+    if isinstance(poster, list):
+        if len(poster) > 1:
+            raise ValueError('Just one poster, please')
+        poster = poster[0]
 
     if not smtp_servers:
         smtp_servers = [os.environ.get('SMTP_SERVER')]
