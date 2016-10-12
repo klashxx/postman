@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """mail sender helper"""
+from __future__ import print_function
 
 def postman(mboxes,
             subject,
@@ -28,7 +29,7 @@ def postman(mboxes,
     logger.debug(args)
 
     if not isinstance(str if mboxes is None else mboxes, list):
-        raise ValueError('Se requieren mailboxes de destino.')
+        raise ValueError('mailboxes are needed!')
 
     mregex = (r'^[_a-z0-9-]+(\.[_a-z0-9-]+)*@'
                '[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$')
@@ -37,6 +38,23 @@ def postman(mboxes,
     logger.debug('valid regex boxes: {0}'.format(str(mboxes)))
     if not mboxes:
         raise ValueError('No valid boxes!')
+
+
+    try:
+        import dns.resolver
+    except ImportError:
+        pass
+    else:
+        valid_domains = []
+        for domain in list(set([mbox.split('@')[1] for mbox in mboxes])):
+            try:
+                dns.resolver.query(domain, 'MX')
+            except Exception as error:
+                logger.error('BAD domain [{0}]: {1}'.format(domain, error))
+            else:
+                valid_domains.append(domain)
+                logger.debug('Valid box domain: {0}'.format(domain))
+
 
     return None
 
