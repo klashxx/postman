@@ -87,6 +87,35 @@ def postman(mboxes,
     elif not isinstance(smtp_servers, list):
         raise ValueError('smtp servers should be in list')
 
+    import csv
+    import time
+    import socket
+    import smtplib
+    import mimetypes
+    from email import encoders
+    from email.mime.base import MIMEBase
+    from email.mime.text import MIMEText
+    from email.mime.image import MIMEImage
+    from email.mime.multipart import MIMEMultipart
+    from email.utils import formatdate
+
+    try:
+        host = socket.gethostname()
+    except:
+        host = 'Unknown'
+
+    msg = MIMEMultipart('mixed')
+    msg['Subject'] = '[{0}][{1}] {2}'.format(time.strftime('%Y%m%d-%H%M%S'),
+                                             host,
+                                             subject)
+    msg['From'] = poster
+    msg['To'] = ','.join(mboxes)
+    if important:
+        msg['X-Priority'] = '1'
+        msg['X-MSMail-Priority'] = 'High'
+    msg['X-Generated-By'] = host
+    msg['Date'] = formatdate(localtime=True)
+
     return None
 
 def cli():
