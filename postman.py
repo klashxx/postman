@@ -145,18 +145,41 @@ def postman(mboxes,
             continue
 
         try:
-            with open(file_attach, 'rb') as is_csv:
-                fattach = is_csv.read()
+            with open(file_attach) as is_csv:
+                attach_content = is_csv.read()
                 try:
                     csv.Sniffer().sniff(is_csv.read(1024))
                     is_csv.seek(0)
                 except csv.Error:
                     # DOS line breaks
-                    fattach = re.compile(r'(\n)').sub(r'\r\n', fattach)
+                    attach_content = re.compile(r'(\n)').sub(r'\r\n',
+                                                             attach_content)
         except Exception as err:
-            body = '{0}\r\nfattach {1} invalid: {2}!'.format(body,
-                                                             str(file_attach),
+            body = '{0}\r\nFile {1} is invalid: {2}!'.format(body,
+                                                             file_attach,
                                                              str(err))
+        ctype, encoding = mimetypes.guess_type(file_attach)
+
+        if ctype is None or encoding is not None:
+            # Generic codification
+            ctype = 'application/octet-stream'
+
+        maintype, subtype = ctype.split('/', 1)
+        if maintype == 'text':
+            attachment = MIMEText(attach_content, _subtype=subtype)
+        elif maintype == 'image':
+            with open(file_attach, 'rb') as file_attach_img:
+                attachment = MIMEImage(file_attach_img.read(),
+                                       _subtype=subtype)
+        else:
+            attachment = MIMEBase(maintype, subtype)
+            attachment.set_payload(attach_content)
+            encoders.encode_base64(attachment)
+
+        attachment.add_header('Content-Disposition',
+                              'attachment; filename="{0}"'
+                              ''.format(os.path.basename(file_attach)))
+        msg.attach(attachment)
 
     return None
 
