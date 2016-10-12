@@ -116,6 +116,23 @@ def postman(mboxes,
     msg['X-Generated-By'] = host
     msg['Date'] = formatdate(localtime=True)
 
+    if all([body, isinstance((str if embed is None else embed), list)]):
+        for img in embed:
+            cid = os.path.basename(img)
+            if 'cid:{0}'.format(cid) not in body:
+                logger.error('Cannot find img cid in mail body.')
+                continue
+            try:
+                with open(img, 'rb') as image_handler:
+                    msg_img = MIMEImage(image_handler.read())
+            except Exception as err:
+                logger.error('error: {0} when trying '
+                             'to embed.'.format(str(err)))
+                continue
+            msg_img.add_header('Content-ID', '<{0}>'.format(cid))
+            msg_img.add_header('Content-Disposition', 'inline', filename=img)
+            msg.attach(msg_img)
+
     return None
 
 def cli():
