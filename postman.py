@@ -61,6 +61,11 @@ def postman(mboxes,
         if not mboxes:
             raise ValueError('No valid domains in remaining boxes!')
 
+    if attach is None:
+        attach = []
+    elif not isinstance(attach, list):
+        raise ValueError('attachments should be in list')
+
     return None
 
 def cli():
