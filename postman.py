@@ -39,22 +39,27 @@ def postman(mboxes,
     if not mboxes:
         raise ValueError('No valid boxes!')
 
-
     try:
         import dns.resolver
     except ImportError:
         pass
     else:
-        valid_domains = []
+        valid_dns = []
         for domain in list(set([mbox.split('@')[1] for mbox in mboxes])):
             try:
                 dns.resolver.query(domain, 'MX')
             except Exception as error:
                 logger.error('BAD domain [{0}]: {1}'.format(domain, error))
             else:
-                valid_domains.append(domain)
+                valid_dns.append(domain)
                 logger.debug('Valid box domain: {0}'.format(domain))
 
+        if not valid_dns:
+            raise ValueError('No valid domains!')
+
+        mboxes = [mbox for mbox in mboxes if mbox.split('@')[1] in valid_dns]
+        if not mboxes:
+            raise ValueError('No valid domains in remaining boxes!')
 
     return None
 
