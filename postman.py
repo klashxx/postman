@@ -15,16 +15,28 @@ def postman(mboxes,
             logger=None):
 
     args = locals()
+    import re
     import logging
 
     if not isinstance(logger, logging.Logger):
         logger = logging.getLogger('postman')
         logger.setLevel(logging.DEBUG)
-        ch = logging.StreamHandler()
-        ch.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
-        logger.addHandler(ch)
+        loghndl = logging.StreamHandler()
+        loghndl.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
+        logger.addHandler(loghndl)
 
     logger.debug(args)
+
+    if not isinstance(str if mboxes is None else mboxes, list):
+        raise ValueError('Se requieren mailboxes de destino.')
+
+    mregex = (r'^[_a-z0-9-]+(\.[_a-z0-9-]+)*@'
+               '[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$')
+
+    mboxes = [mbox for mbox in mboxes if re.match(mregex, mbox)]
+    logger.debug('valid regex boxes: {0}'.format(str(mboxes)))
+    if not mboxes:
+        raise ValueError('No valid boxes!')
 
     return None
 
