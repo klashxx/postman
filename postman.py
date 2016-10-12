@@ -16,6 +16,7 @@ def postman(mboxes,
             logger=None):
 
     args = locals()
+    import os
     import re
     import logging
 
@@ -65,6 +66,13 @@ def postman(mboxes,
         attach = []
     elif not isinstance(attach, list):
         raise ValueError('attachments should be in list')
+
+    if not smtp_servers:
+        smtp_servers = [os.environ.get('SMTP_SERVER')]
+        if smtp_servers[0] is None:
+            raise ValueError('No smtp server specified')
+    elif not isinstance(smtp_servers, list):
+        raise ValueError('smtp servers should be in list')
 
     return None
 
