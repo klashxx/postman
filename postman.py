@@ -179,16 +179,19 @@ Options:
     except SchemaError:
         raise DocoptExit
 
-    postman(args['--mbox'],
-            args['<subject>'],
-            body=args['--body'],
-            attach=args['--attach'],
-            embed=args['--embed'],
-            poster=args['--poster'],
-            smtp_servers=args['--smtp'],
-            important=args['--important'],
-            login=args['--login'],
-            passwd=args['--passwd'])
+    try:
+        postman(args['--mbox'],
+                args['<subject>'],
+                body=args['--body'],
+                attach=args['--attach'],
+                embed=args['--embed'],
+                poster=args['--poster'],
+                smtp_servers=args['--smtp'],
+                important=args['--important'],
+                login=args['--login'],
+                passwd=args['--passwd'])
+    except Exception as error:
+        raise DocoptExit('postman failed: {0}'.format(str(error)))
 
     return None
 
