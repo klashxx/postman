@@ -3,6 +3,9 @@
 """mail sender helper"""
 from __future__ import print_function
 
+__all__ = ['postman']
+__version__ = '0.0.1'
+
 def postman(mboxes,
             subject,
             body=None,
