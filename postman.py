@@ -36,7 +36,7 @@ def postman(mboxes,
         raise ValueError('mailboxes are needed!')
 
     mregex = (r'^[_a-z0-9-]+(\.[_a-z0-9-]+)*@'
-               '[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$')
+              r'[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$')
 
     mboxes = [mbox for mbox in mboxes if re.match(mregex, mbox)]
     logger.debug('valid regex boxes: {0}'.format(str(mboxes)))
@@ -87,11 +87,26 @@ def postman(mboxes,
     elif not isinstance(smtp_servers, list):
         raise ValueError('smtp servers should be in list')
 
+    if not login:
+        login = os.environ.get('SMTP_LOGIN')
+        if login is None:
+            raise ValueError('No smtp server specified')
+    else:
+        login = login[0]
+
+    if not passwd:
+        passwd = os.environ.get('SMTP_PASS')
+        if passwd is None:
+            raise ValueError('No smtp server specified')
+    else:
+        passwd = passwd[0]
+
     import csv
     import time
     import socket
     import smtplib
     import mimetypes
+    from base64 import encodebytes
     from email import encoders
     from email.mime.base import MIMEBase
     from email.mime.text import MIMEText
@@ -155,7 +170,7 @@ def postman(mboxes,
                     attach_content = re.compile(r'(\n)').sub(r'\r\n',
                                                              attach_content)
         except Exception as err:
-            body = '{0}\r\nFile {1} is invalid: {2}!'.format(body,
+            body = '{0}\r\nFile {1} is invalid: {2}!'.format(str(body),
                                                              file_attach,
                                                              str(err))
         ctype, encoding = mimetypes.guess_type(file_attach)
@@ -165,6 +180,9 @@ def postman(mboxes,
             ctype = 'application/octet-stream'
 
         maintype, subtype = ctype.split('/', 1)
+        logger.debug('{0}: Type: {1} Subtype: {2}'.format(file_attach,
+                                                          maintype,
+                                                          subtype))
         if maintype == 'text':
             attachment = MIMEText(attach_content, _subtype=subtype)
         elif maintype == 'image':
@@ -173,15 +191,60 @@ def postman(mboxes,
                                        _subtype=subtype)
         else:
             attachment = MIMEBase(maintype, subtype)
-            attachment.set_payload(attach_content)
-            encoders.encode_base64(attachment)
+            with open(file_attach, 'rb') as file_attach_rem:
+                encodebytes(file_attach_rem.read()).decode()
+                attachment.set_payload(encodebytes(file_attach_rem.read()).decode())
+            attachment.add_header('Content-Transfer-Encoding', 'base64')
 
         attachment.add_header('Content-Disposition',
                               'attachment; filename="{0}"'
                               ''.format(os.path.basename(file_attach)))
         msg.attach(attachment)
 
+    if body:
+        part1 = MIMEText(body, 'html', 'utf-8')
+    else:
+        part1 = MIMEText('Empty', 'plain')
+    msg.attach(part1)
+
+    for smtp_server, port in [server.split(':') for server in smtp_servers]:
+        try:
+            smtp_connection = smtplib.SMTP(smtp_server, port)
+            break
+        except smtplib.SMTPException as err:  # No se ha llegado a crear
+            logger.error('Error de envio: "{0}" '
+                         'smtp_server: {1}'.format(str(err), smtp_server))
+            continue
+        except smtplib.socket.error as err:
+            logger.error('Error de smtplib.socket: "{0}" '
+                         'smtp_server: {1}'.format(str(err), smtp_server))
+            continue
+    else:
+        raise ValueError('No se ha podido establecer conexion SMTP.')
+
+    smtp_connection.ehlo()
+    smtp_connection.starttls()
+    smtp_connection.ehlo()
+
+    if all([login, passwd]):
+        try:
+            smtp_connection.login(login, passwd)
+        except smtplib.SMTPAuthenticationError as error:
+            logger.critical('Authentication error: {0}'.format(str(error)))
+
+    logger.debug('smtp_connection ok: {0}'.format(smtp_server))
+
+    try:
+        smtp_connection.sendmail(poster, mboxes, msg.as_string())
+    except smtplib.SMTPSenderRefused as error:
+        raise ValueError('Sender refused: {0}'.format(str(error)))
+
+    smtp_connection.quit()
+
+    logger.info('postman™ successful')
+
     return None
+
 
 def cli():
     cli_docs = """postman™ ...just another mail sender.
@@ -194,7 +257,7 @@ Options:
   --poster POSTER      mailbox of the sender [default: noresponse@postman.org]
   --attach=<files>     file to attach
   --embed=<files>      file to embed
-  --smtp SERVER        smtp server
+  --smtp SERVER:PORT   smtp server
   --important          Mark mail as important.  [default:false]
   --login LOGIN        user smtp login
   --passwd PASS        user smtp passwd
