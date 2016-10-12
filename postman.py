@@ -133,6 +133,31 @@ def postman(mboxes,
             msg_img.add_header('Content-Disposition', 'inline', filename=img)
             msg.attach(msg_img)
 
+    for file_attach in attach:
+        if not os.path.isfile(file_attach):
+            logger.error('{0} is not a file!'.format(file_attach))
+            continue
+        try:
+            if not os.path.getsize(file_attach):
+                logger.error('size 0 for: {0}'.format(file_attach))
+                continue
+        except:
+            continue
+
+        try:
+            with open(file_attach, 'rb') as is_csv:
+                fattach = is_csv.read()
+                try:
+                    csv.Sniffer().sniff(is_csv.read(1024))
+                    is_csv.seek(0)
+                except csv.Error:
+                    # DOS line breaks
+                    fattach = re.compile(r'(\n)').sub(r'\r\n', fattach)
+        except Exception as err:
+            body = '{0}\r\nfattach {1} invalid: {2}!'.format(body,
+                                                             str(file_attach),
+                                                             str(err))
+
     return None
 
 def cli():
