@@ -67,6 +67,11 @@ def postman(mboxes,
     elif not isinstance(attach, list):
         raise ValueError('attachments should be in list')
 
+    if embed is None:
+        embed = []
+    elif not isinstance(embed, list):
+        raise ValueError('embedments should be in list')
+
     if not smtp_servers:
         smtp_servers = [os.environ.get('SMTP_SERVER')]
         if smtp_servers[0] is None:
