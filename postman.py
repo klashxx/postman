@@ -3,12 +3,15 @@
 """mail sender helper"""
 from __future__ import print_function
 
+__all__ = ['postman']
+__version__ = '0.0.1'
+
 def postman(mboxes,
             subject,
             body=None,
             attach=None,
             embed=None,
-            poster='noresponse@postman.org',
+            poster='noreply@postman.org',
             smtp_servers=None,
             important=False,
             login=None,
@@ -106,7 +109,6 @@ def postman(mboxes,
     import socket
     import smtplib
     import mimetypes
-    from base64 import encodebytes
     from email import encoders
     from email.mime.base import MIMEBase
     from email.mime.text import MIMEText
@@ -169,10 +171,8 @@ def postman(mboxes,
                     # DOS line breaks
                     attach_content = re.compile(r'(\n)').sub(r'\r\n',
                                                              attach_content)
-        except Exception as err:
-            body = '{0}\r\nFile {1} is invalid: {2}!'.format(str(body),
-                                                             file_attach,
-                                                             str(err))
+        except:
+            pass
         ctype, encoding = mimetypes.guess_type(file_attach)
 
         if ctype is None or encoding is not None:
@@ -192,8 +192,8 @@ def postman(mboxes,
         else:
             attachment = MIMEBase(maintype, subtype)
             with open(file_attach, 'rb') as file_attach_rem:
-                encodebytes(file_attach_rem.read()).decode()
-                attachment.set_payload(encodebytes(file_attach_rem.read()).decode())
+                attachment.set_payload(file_attach_rem.read())
+            encoders.encode_base64(attachment)
             attachment.add_header('Content-Transfer-Encoding', 'base64')
 
         attachment.add_header('Content-Disposition',
@@ -220,7 +220,7 @@ def postman(mboxes,
                          'smtp_server: {1}'.format(str(err), smtp_server))
             continue
     else:
-        raise ValueError('No se ha podido establecer conexion SMTP.')
+        raise ValueError('Cannot establish SMTP connection')
 
     smtp_connection.ehlo()
     smtp_connection.starttls()
@@ -254,7 +254,7 @@ Usage:
 
 Options:
   --body BODY          body of the mail
-  --poster POSTER      mailbox of the sender [default: noresponse@postman.org]
+  --poster POSTER      mailbox of the sender [default: noreply@postman.org]
   --attach=<files>     file to attach
   --embed=<files>      file to embed
   --smtp SERVER:PORT   smtp server
