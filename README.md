@@ -12,7 +12,7 @@ Sure.
 
 ## What about authentication?
 
-**Currently** only *user* - *password* method is implemented **but** you can pass these values via *environment variables*.
+**Currently** only *user* - *password* method is implemented **but** you can pass these values via `SMTP_LOGIN` and `SMTP_PASS` *environment variables*.
 
 :warning: **NOTE**: To use `smtp.gmail.com` you must enable [less secure apps](https://www.google.com/settings/security/lesssecureapps).
 
@@ -74,6 +74,34 @@ INFO - postman™ successful
 ```
 
 ### As a module:
+
+```
+>>> from postman import postman
+>>> help(postman)
+Help on function postman in module postman:
+
+postman(mboxes, subject, body=None, attach=None, embed=None, poster='noreply@postman.org', smtp_servers=None, important=False, login=None, passwd=None, logger=None)
+    postman™: the email sender.
+    
+    Args:
+        mboxes (list): list of recipients.
+        subject (str): subject of the mail.
+        body  (str): body text of the email (could be html).
+        attach (list|optional): list of files to be attached.
+        embed (list|optional): list of images to be embedded.
+        poster (str|optional):  address of the email sender.
+        smtp_servers (list|optional): list of smtp servers senders. Could be 
+         passed via `SMTP_SERVER` env var.
+        important (bool|optional): to flag the message as important.
+        login (str|optional): login value on smtp server. Could be passed via
+         `SMTP_LOGIN` env var.
+        passwd (str|optional): passwd value on smtp server. Could be passed via
+         `SMTP_PASS` env var.
+        logger (logging.Logger|optional): logger to attach.
+    
+    Returns:
+        None
+```
 
 ```
 $ SMTP_LOGIN=usertest SMTP_PASS=345j2u3vxvHH98ym8Oxc2 python
