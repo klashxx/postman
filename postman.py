@@ -229,6 +229,7 @@ def postman(mboxes,
         part1 = MIMEText(body, 'html', 'utf-8')
     else:
         part1 = MIMEText('Empty', 'plain')
+
     msg.attach(part1)
 
     for smtp_server, port in [server.split(':') for server in smtp_servers]:
@@ -317,7 +318,7 @@ Options:
     try:
         postman(args['--mbox'],
                 args['<subject>'],
-                body=args['--body'],
+                body=''.join(args['--body']),
                 attach=args['--attach'],
                 embed=args['--embed'],
                 poster=args['--poster'],
