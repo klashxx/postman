@@ -17,8 +17,32 @@ def postman(mboxes,
             login=None,
             passwd=None,
             logger=None):
+    """
+    postman™: the email sender.
+
+    Args:
+        mboxes (list): list of recipients.
+        subject (str): subject of the mail.
+        body  (str): body text of the email (could be html).
+        attach (list|optional): list of files to be attached.
+        embed (list|optional): list of images to be embedded.
+        poster (str|optional):  address of the email sender.
+        smtp_servers (str|optional): list of smtp servers senders. Could be 
+         passed via `SMTP_SERVER` env var.
+        important (bool|optional): to flag the message as important.
+        login (str|optional): login value on smtp server. Could be passed via
+         `SMTP_LOGIN` env var.
+        passwd (str|optional): passwd value on smtp server. Could be passed via
+         `SMTP_PASS` env var.
+        logger (logging.Logger|optional): logger to attach.
+
+    Returns:
+        None
+    """
 
     args = locals()
+    args['passwd'] = 'secret'
+
     import os
     import re
     import logging
