@@ -27,7 +27,7 @@ def postman(mboxes,
         attach (list|optional): list of files to be attached.
         embed (list|optional): list of images to be embedded.
         poster (str|optional):  address of the email sender.
-        smtp_servers (str|optional): list of smtp servers senders. Could be 
+        smtp_servers (list|optional): list of smtp servers senders. Could be 
          passed via `SMTP_SERVER` env var.
         important (bool|optional): to flag the message as important.
         login (str|optional): login value on smtp server. Could be passed via
